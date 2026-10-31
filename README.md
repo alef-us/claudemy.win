@@ -1,4 +1,6 @@
-# Claudemy: an open-source alternative to Udemy and Coursera
+# Claudemy for Windows: an open-source alternative to Udemy and Coursera
+
+> A Windows adaptation of [assafkip/claudemy](https://github.com/assafkip/claudemy) by Assaf Kipnis. Same skill and lessons; free audio uses the built-in Windows voices instead of macOS `say`, commands use `python` instead of `python3`, and files written by Notepad or PowerShell (BOM, CRLF, non-UTF-8 code pages) are handled.
 
 You wanted to learn negotiation. You got a 40-hour course, a syllabus someone wrote years ago, and a tab you never reopened.
 
@@ -48,30 +50,31 @@ Want a class built from one person's work instead? Say so: `teach me negotiation
 As a Claude Code plugin:
 
 ```
-/plugin marketplace add assafkip/claudemy
-/plugin install claudemy@claudemy
+/plugin marketplace add alef-us/claudemy.win
+/plugin install claudemy@claudemy-win
 ```
 
-Or copy `skills/claudemy/` into `~/.claude/skills/`, or download [`claudemy.skill` from the latest release](https://github.com/assafkip/claudemy/releases/latest/download/claudemy.skill).
+Or copy `skills/claudemy/` into `%USERPROFILE%\.claude\skills\`.
 
 Then ask for any topic: `teach me <topic>`.
 
 ## Needs
 
-- [Claude Code](https://claude.com/claude-code) with web search.
-- Python 3 with `beautifulsoup4` (`pip install beautifulsoup4`), and `ffmpeg`.
-- Audio: an ElevenLabs API key for natural two-voice lessons, either in `ELEVENLABS_API_KEY` or typed into the plugin's configuration prompt when you install it (stored in your OS keychain). Without one, macOS's built-in voices are used (free, plainer).
-- Optional: `pandoc` for a Word copy of the cards.
+- [Claude Code](https://claude.com/claude-code) for Windows with web search. [Git for Windows](https://git-scm.com/download/win) is recommended, since Claude Code runs its shell commands in Git Bash.
+- Python 3 that runs as `python` (`winget install Python.Python.3.13`). On Windows, `python3` is usually only the Microsoft Store stub, so the plugin calls `python`.
+- `beautifulsoup4` (`python -m pip install beautifulsoup4`), and `ffmpeg` with `ffprobe` (`winget install Gyan.FFmpeg`, then restart the terminal and Claude Code).
+- Audio: an ElevenLabs API key for natural two-voice lessons, either in `ELEVENLABS_API_KEY` or typed into the plugin's configuration prompt when you install it (stored in your OS credential store). Without one, the built-in Windows voices are used (Microsoft Zira and David through Windows PowerShell; free, plainer). If the key from the prompt is not picked up, set it for your user once: `setx ELEVENLABS_API_KEY "<key>"`, then restart Claude Code.
+- Optional: `pandoc` for a Word copy of the cards (`winget install JohnMacFarlane.Pandoc`).
 
-Voices can be changed with `CLAUDEMY_VOICE_A` / `CLAUDEMY_VOICE_B` (ElevenLabs voice ids) or `CLAUDEMY_SAY_A` / `CLAUDEMY_SAY_B` (macOS voices).
+Voices can be changed with `CLAUDEMY_VOICE_A` / `CLAUDEMY_VOICE_B` (ElevenLabs voice ids) or `CLAUDEMY_WIN_VOICE_A` / `CLAUDEMY_WIN_VOICE_B` (names of installed Windows voices, for example `Microsoft Hazel Desktop`; more voices come from Settings > Time & language > Speech). A Windows voice that isn't installed is replaced by an installed English voice of the same gender. On macOS the original `say` voices still work (`CLAUDEMY_SAY_A` / `CLAUDEMY_SAY_B`).
 
 ## Data
-Claudemy runs on your machine inside Claude Code. It fetches the public web pages it researches and saves them in a local workspace folder. If you set an ElevenLabs API key, the text of each lesson is sent to ElevenLabs to render the audio. Without a key, audio is rendered locally with macOS voices. The skill has no server, collects no analytics, and stores nothing outside your machine. Details: [privacy page](https://assafkip.github.io/claudemy/privacy.html).
+Claudemy runs on your machine inside Claude Code. It fetches the public web pages it researches and saves them in a local workspace folder. If you set an ElevenLabs API key, the text of each lesson is sent to ElevenLabs to render the audio. Without a key, audio is rendered locally with Windows voices. The skill has no server, collects no analytics, and stores nothing outside your machine. Details: [privacy page](docs/privacy.html).
 
 ## FAQ
 
 **Is Claudemy free?**
-Yes. The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices. The macOS voices cost nothing.
+Yes. The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices. The Windows voices cost nothing.
 
 **How is it different from Udemy or Coursera?**
 Course sites sell a fixed course someone recorded once. Claudemy builds a course on the topic you name, at your level, from current sources, and shows you where those sources disagree. Lessons are 2 minutes and end in one thing to try, so the course is built to be finished.
@@ -83,7 +86,7 @@ Anything people write about well on the open web. Skills (negotiation, public sp
 No. It reads pages the way a researcher does, writes its own lessons, and links to the sources. Pages it reads are saved only in your local workspace for your own study.
 
 **Can I use it without ElevenLabs?**
-Yes. On a Mac it falls back to the built-in voices. The cards and playbook work with no audio at all.
+Yes. On Windows it falls back to the built-in voices. The cards and playbook work with no audio at all.
 
 **How long does a course take to make?**
 A 12-lesson course is a long-running Claude Code session: research, reading, writing and about 25 minutes of generated audio.
@@ -97,4 +100,4 @@ Built by Assaf Kipnis. I run ASK Consulting, a fractional Trust & Safety and fra
 
 ## License
 
-MIT. Free to use, change and share.
+MIT. Free to use, change and share. Original work © Assaf Kipnis ([assafkip/claudemy](https://github.com/assafkip/claudemy)); see [LICENSE](LICENSE).

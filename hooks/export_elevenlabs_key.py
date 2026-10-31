@@ -36,7 +36,9 @@ def main() -> int:
     exports = [l for l in data.splitlines() if l.startswith(b"export ELEVENLABS_API_KEY=")]
     if exports and exports[-1] == line.encode("utf-8"):
         return 0
-    with open(env_file, "a", encoding="utf-8") as f:
+    # newline="\n": on Windows text mode would write CRLF, and Git Bash would then
+    # source the key with a trailing carriage return, which ElevenLabs refuses.
+    with open(env_file, "a", encoding="utf-8", newline="\n") as f:
         f.write(("\n" if data and not data.endswith(b"\n") else "") + line + "\n")
     return 0
 

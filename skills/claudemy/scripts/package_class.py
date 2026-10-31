@@ -4,7 +4,7 @@ Chat and file-sharing tools cap uploads (one we hit was 30 MB), so the audio is
 split into numbered zips that each stay under --max-mb. Cards are combined in
 lesson order into cards.md, and into cards.docx when pandoc is installed.
 
-Usage: python3 package_class.py <workspace> [--max-mb 25]
+Usage: python package_class.py <workspace> [--max-mb 25]
 Writes to <workspace>/deliver/.
 """
 import shutil, subprocess, sys, zipfile
@@ -54,7 +54,7 @@ def combine_cards(ws, out):
     # same reason); reading and writing in the locale's encoding instead crashed on
     # a Windows-style non-UTF-8 locale as soon as a card held an accented or
     # non-Latin letter.
-    md.write_text("\n\n---\n\n".join(c.read_text(encoding="utf-8") for c in cards), encoding="utf-8")
+    md.write_text("\n\n---\n\n".join(c.read_text(encoding="utf-8-sig") for c in cards), encoding="utf-8")
     if shutil.which("pandoc"):
         subprocess.run(["pandoc", str(md), "-f", "markdown", "-t", "docx", "-o", str(out / "cards.docx")], check=True)
     return len(cards)
@@ -74,5 +74,7 @@ def main(ws, max_mb):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
+    # The paths printed may hold letters a legacy Windows code page can't show.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     cap = int(sys.argv[sys.argv.index("--max-mb") + 1]) if "--max-mb" in sys.argv else 25
     main(Path(sys.argv[1]).expanduser().resolve(), cap)

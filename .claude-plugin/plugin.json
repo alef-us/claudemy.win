@@ -8,8 +8,8 @@
     "url": "https://askconsulting.io"
   },
   "license": "MIT",
-  "repository": "https://github.com/assafkip/claudemy",
-  "homepage": "https://github.com/assafkip/claudemy",
+  "repository": "https://github.com/alef-us/claudemy.win",
+  "homepage": "https://github.com/alef-us/claudemy.win",
   "keywords": [
     "udemy-alternative",
     "coursera-alternative",
@@ -18,17 +18,18 @@
     "audio-lessons",
     "microlearning",
     "podcast",
-    "elevenlabs"
+    "elevenlabs",
+    "windows"
   ],
   "icon": "./.claude-plugin/icon.png",
-  "documentationUrl": "https://assafkip.github.io/claudemy/",
-  "supportUrl": "https://github.com/assafkip/claudemy/issues",
-  "privacyPolicyUrl": "https://assafkip.github.io/claudemy/privacy.html",
+  "documentationUrl": "https://github.com/alef-us/claudemy.win#readme",
+  "supportUrl": "https://github.com/alef-us/claudemy.win/issues",
+  "privacyPolicyUrl": "https://github.com/alef-us/claudemy.win#data",
   "userConfig": {
     "elevenlabs_api_key": {
       "type": "string",
       "title": "ElevenLabs API key",
-      "description": "Optional. Renders lessons with two natural ElevenLabs voices. Leave empty to use the free macOS voices.",
+      "description": "Optional. Renders lessons with two natural ElevenLabs voices. Leave empty to use the free built-in Windows voices.",
       "sensitive": true
     }
   }

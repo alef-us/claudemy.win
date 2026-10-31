@@ -28,7 +28,7 @@ In every mode, limit counts posts on disk for that person, so a re-run tops up
 to the limit rather than adding another batch. Every page not saved is named
 with the reason.
 
-Usage: python3 scrape.py <workspace> [name-substring | web]
+Usage: python scrape.py <workspace> [name-substring | web]
 Re-runs skip posts already on disk, so an interrupted run resumes.
 """
 import copy, hashlib, html, json, re, sys, time, urllib.error, urllib.request
@@ -403,7 +403,8 @@ def scrape_pages(ws, urls, min_words=150):
 
 
 def main(ws, want=""):
-    cfg = json.loads((ws / "sources.json").read_text())
+    # utf-8-sig: sources.json written by Notepad or Windows PowerShell starts with a BOM.
+    cfg = json.loads((ws / "sources.json").read_text(encoding="utf-8-sig"))
     if cfg.get("pages") and want in ("", "web"):
         scrape_pages(ws, cfg["pages"], cfg.get("min_words", 150))
     for person in cfg.get("authors", []):
@@ -428,4 +429,8 @@ def main(ws, want=""):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
+    # A Windows console or pipe in a legacy code page can't show every title or url;
+    # one such character used to stop the run with UnicodeEncodeError.
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     main(Path(sys.argv[1]).expanduser().resolve(), sys.argv[2].lower() if len(sys.argv) > 2 else "")

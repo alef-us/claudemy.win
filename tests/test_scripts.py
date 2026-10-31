@@ -1,8 +1,9 @@
 """Regression tests for skills/claudemy/scripts. Stdlib only.
 
-Run from the repo root:  python3 -m unittest discover -s tests
+Run from the repo root:  python -m unittest discover -s tests
 Each test names the GitHub issue it guards.
 """
+import base64
 import contextlib
 import io
 import json
@@ -392,8 +393,8 @@ class VersionStrings(unittest.TestCase):
     """The site's structured data names the same version as the plugin."""
 
     def test_site_matches_plugin(self):
-        plugin = json.loads((REPO / ".claude-plugin" / "plugin.json").read_text())["version"]
-        site = re.search(r'"softwareVersion":\s*"([^"]+)"', (REPO / "docs" / "index.html").read_text()).group(1)
+        plugin = json.loads((REPO / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"]
+        site = re.search(r'"softwareVersion":\s*"([^"]+)"', (REPO / "docs" / "index.html").read_text(encoding="utf-8")).group(1)
         self.assertEqual(site, plugin)
 
 
@@ -662,6 +663,130 @@ class SubstackSkipRecord(unittest.TestCase):
             again, _ = self.run_once(ws, min_words=30)
             self.assertEqual(again, ["https://j.substack.com/api/v1/posts/teaser"])
             self.assertIn("https://j.substack.com/p/teaser", scrape.urls_on_disk(ws / "raw" / "jane"))
+
+
+BOM = b"\xef\xbb\xbf"
+SCRIPT_OK = "\n".join(["A: " + "word " * 15, "B: " + "word " * 15] * 10)
+
+
+class WindowsHook(unittest.TestCase):
+    """On Windows `python3` is the Microsoft Store stub, and text mode writes CRLF,
+    which Git Bash would source as part of the key."""
+
+    def test_hook_runs_python_not_the_store_stub(self):
+        cfg = json.loads((REPO / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+        hook = cfg["hooks"]["SessionStart"][0]["hooks"][0]
+        self.assertEqual(hook["command"], "python")
+
+    def test_export_line_has_no_carriage_return(self):
+        with tempfile.TemporaryDirectory() as td:
+            env_file = Path(td) / "env"
+            env = {k: v for k, v in os.environ.items() if k != "ELEVENLABS_API_KEY"}
+            env.update({"CLAUDE_PLUGIN_OPTION_ELEVENLABS_API_KEY": "sk-test", "CLAUDE_ENV_FILE": str(env_file)})
+            subprocess.run([sys.executable, str(REPO / "hooks" / "export_elevenlabs_key.py")], env=env, check=True)
+            self.assertEqual(env_file.read_bytes(), b"export ELEVENLABS_API_KEY='sk-test'\n")
+
+
+class WindowsEngine(unittest.TestCase):
+    """Without an ElevenLabs key, Windows uses its own voices instead of macOS `say`."""
+
+    def test_engine_order(self):
+        which = {"powershell.exe": "C:/ps.exe", "say": None}.get
+        with mock.patch.object(render_audio.shutil, "which", side_effect=which):
+            self.assertEqual(render_audio.pick_engine("sk"), "ElevenLabs")
+            with mock.patch.object(render_audio, "IS_WINDOWS", True):
+                self.assertEqual(render_audio.pick_engine(None), "Windows voices")
+            with mock.patch.object(render_audio, "IS_WINDOWS", False):
+                self.assertIsNone(render_audio.pick_engine(None))
+
+    def test_text_reaches_powershell_through_a_utf8_file(self):
+        seen = {}
+
+        def fake_run(cmd, **kw):
+            self.assertNotIn("-File", cmd)
+            script = base64.b64decode(cmd[cmd.index("-EncodedCommand") + 1]).decode("utf-16-le")
+            job_path = re.match(r"\$JobFile = '((?:[^']|'')*)'", script).group(1).replace("''", "'")
+            job = json.loads(Path(job_path).read_text(encoding="utf-8"))
+            seen.update(job)
+            for t in job["turns"]:
+                Path(t["out"]).write_bytes(b"RIFF")
+            return subprocess.CompletedProcess(cmd, 0, "A=Zira\nB=David\n", "")
+
+        turns = [("A", "It's $5 & \"more\" [laughs] Иван"), ("B", "Café")]
+        with tempfile.TemporaryDirectory(prefix="o'brien ") as td, \
+                mock.patch.object(render_audio.subprocess, "run", side_effect=fake_run):
+            parts = render_audio.sapi_parts(turns, Path(td))
+        self.assertEqual([p.suffix for p in parts], [".wav", ".wav"])
+        self.assertEqual(seen["turns"][0]["text"], "It's $5 & \"more\"  Иван")
+        self.assertEqual(seen["voices"]["A"]["gender"], "Female")
+
+    def test_concat_list_uses_bare_names(self):
+        with tempfile.TemporaryDirectory(prefix="o'brien Иван ") as td, \
+                mock.patch.object(render_audio.subprocess, "run") as run:
+            tmp = Path(td)
+            render_audio.stitch([tmp / "turn000.wav", tmp / "turn001.wav"], tmp, tmp / "out.mp3")
+            listing = (tmp / "list.txt").read_text(encoding="utf-8")
+        self.assertEqual(listing, "file 'turn000.wav'\nfile 'turn001.wav'\n")
+        run.assert_called_once()
+
+    def test_stamp_keeps_bom_and_crlf(self):
+        probe = subprocess.CompletedProcess([], 0, "151.2\n", "")
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(render_audio.subprocess, "run", return_value=probe):
+            card = Path(td) / "card.md"
+            card.write_bytes(BOM + b"# T\r\n**Listen:** x.mp3 (2 min)\r\nnext\r\n")
+            self.assertEqual(render_audio.stamp_card(card, Path(td) / "x.mp3"), "2:31")
+            self.assertEqual(card.read_bytes(), BOM + b"# T\r\n**Listen:** x.mp3 (2:31)\r\nnext\r\n")
+
+
+class BomFiles(unittest.TestCase):
+    """Notepad and Windows PowerShell 5.1 write UTF-8 with a BOM; it must not hide line 1."""
+
+    def test_render_keeps_the_first_turn(self):
+        text = (BOM + "A: one\nB: two\n".encode()).decode("utf-8-sig")
+        self.assertEqual(render_audio.parse_turns(text), [("A", "one"), ("B", "two")])
+
+    def test_checker_passes_a_bom_script_and_card(self):
+        with tempfile.TemporaryDirectory() as td:
+            ws = Path(td)
+            (ws / "raw" / "web").mkdir(parents=True)
+            (ws / "raw" / "web" / "p.md").write_text("---\nurl: https://example.com/a\n---\n", encoding="utf-8")
+            lesson = ws / "class" / "01-x"
+            lesson.mkdir(parents=True)
+            (lesson / "card.md").write_bytes(BOM + CARD_OK.encode())
+            (lesson / "script.txt").write_bytes(BOM + SCRIPT_OK.encode())
+            r = subprocess.run([sys.executable, str(SCRIPTS / "check_lessons.py"), str(ws)],
+                               capture_output=True, text=True, encoding="utf-8", errors="replace")
+        self.assertIn("ok   01-x", r.stdout, r.stdout + r.stderr)
+
+    def test_scrape_reads_a_bom_sources_file(self):
+        with tempfile.TemporaryDirectory() as td:
+            ws = Path(td)
+            (ws / "sources.json").write_bytes(BOM + json.dumps({"topic": "т", "pages": []}).encode())
+            stack, _ = quiet()
+            with stack:
+                scrape.main(ws)
+
+
+@unittest.skipUnless(sys.platform == "win32" and render_audio.shutil.which("powershell.exe")
+                     and render_audio.shutil.which("ffmpeg") and render_audio.shutil.which("ffprobe"),
+                     "needs Windows with ffmpeg")
+class WindowsRenderEndToEnd(unittest.TestCase):
+    """A real render with the built-in voices, in a folder name that once broke ffmpeg's list."""
+
+    def test_render(self):
+        with tempfile.TemporaryDirectory(prefix="o'brien Иван ") as td:
+            lesson = Path(td) / "01-x"
+            lesson.mkdir()
+            (lesson / "script.txt").write_bytes(BOM + "A: Hello there.\r\nB: Hi, café.\r\n".encode())
+            (lesson / "card.md").write_text("**Listen:** x.mp3 (2 min)\n", encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k != "ELEVENLABS_API_KEY"}
+            r = subprocess.run([sys.executable, str(SCRIPTS / "render_audio.py"), str(lesson / "script.txt"),
+                                str(lesson / "x.mp3")], env=env, capture_output=True, text=True,
+                               encoding="utf-8", errors="replace")
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertIn("from 2 turns via Windows voices", r.stdout)
+            self.assertGreater((lesson / "x.mp3").stat().st_size, 1000)
+            self.assertRegex((lesson / "card.md").read_text(encoding="utf-8"), r"\(0:0\d\)")
 
 
 if __name__ == "__main__":

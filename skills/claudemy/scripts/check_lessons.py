@@ -5,7 +5,7 @@ no banned language, and its card has the standard sections and cites only
 pages that are actually on disk in <workspace>/raw/. A citation to a page the
 class never read is how invented sources get in, so it is a hard fail.
 
-Usage: python3 check_lessons.py <workspace> [lesson-folder ...]   (default: all)
+Usage: python check_lessons.py <workspace> [lesson-folder ...]   (default: all)
 Exit 1 if any lesson fails.
 """
 import re, sys
@@ -95,7 +95,7 @@ def check_plan(ws, urls):
     plan = ws / "class" / "lesson-plan.md"
     if not plan.exists():
         return 0
-    cited = set(cited_urls(plan.read_text(encoding="utf-8")))
+    cited = set(cited_urls(plan.read_text(encoding="utf-8-sig")))
     if not cited:
         # A plan that names sources without links has nothing this check can test; "ok" read as a pass.
         print("skip lesson-plan.md (cites no urls, nothing to check)")
@@ -109,8 +109,9 @@ def check_plan(ws, urls):
 
 
 def main(ws, folders):
-    # A url or name the console can't show must not crash the report.
-    sys.stdout.reconfigure(errors="replace")
+    # A url or name the console can't show must not crash the report. UTF-8, since a
+    # Windows pipe otherwise gets the ANSI code page and Claude reads it as mojibake.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     urls = scraped_urls(ws)
     failed = check_plan(ws, urls)
     for d in folders:
@@ -119,8 +120,9 @@ def main(ws, folders):
             print(f"FAIL {d.name}: missing script.txt or card.md")
             failed += 1
             continue
-        problems, words = check_script(script.read_text(encoding="utf-8"))
-        problems += check_card(card.read_text(encoding="utf-8"), urls)
+        # utf-8-sig: a BOM from Notepad or Windows PowerShell would fail line 1 as "not 'A:'".
+        problems, words = check_script(script.read_text(encoding="utf-8-sig"))
+        problems += check_card(card.read_text(encoding="utf-8-sig"), urls)
         print(f"{'FAIL' if problems else 'ok  '} {d.name} ({words} words)")
         for p in problems:
             print(f"     {p}")

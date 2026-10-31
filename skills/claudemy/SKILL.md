@@ -32,8 +32,14 @@ deliver/             zips and combined cards
 ```
 Scripts live next to this file in `scripts/`. Call them by absolute path.
 
+## Windows
+This copy of the skill is set up for Windows. Claude Code runs shell commands there through Git Bash (or PowerShell when Git Bash is missing), so:
+- Run Python as `python`. On Windows `python3` is usually the Microsoft Store stub that only prints "Python was not found". If `python` is that stub too, use `py -3` in every command below.
+- Write paths with forward slashes (`C:/Users/me/claudemy/negotiation`) and quote any path with a space in it.
+- `ffmpeg` and `ffprobe` come from `winget install Gyan.FFmpeg`. A newly installed tool is on PATH only in a new terminal, so restart Claude Code after installing.
+
 ## Before starting
-Check what's available and say what's missing in one line: `python3`, the `beautifulsoup4` package (`pip install beautifulsoup4`), `ffmpeg`. Audio uses ElevenLabs when `ELEVENLABS_API_KEY` is set (the plugin's configuration prompt sets it for you) (the natural two-voice sound) and the free macOS voices otherwise. If the user keeps the key in a file, source it in the same shell command as the render; never print it or copy it into the workspace.
+Check what's available and say what's missing in one line: `python` (Python 3), the `beautifulsoup4` package (`python -m pip install beautifulsoup4`), `ffmpeg` and `ffprobe`. Audio uses ElevenLabs when `ELEVENLABS_API_KEY` is set (the plugin's configuration prompt sets it for you) (the natural two-voice sound) and the free built-in Windows voices otherwise (Microsoft Zira and David, through Windows PowerShell; plainer). If the user keeps the key in a file, source it in the same shell command as the render; never print it or copy it into the workspace.
 
 ## Step 1. Map the topic
 Write `research/topics.md`: 12 to 18 sub-topic ids (T01 to T18) that together cover what a learner at this level gets from a good course. Search first to see how the topic is usually taught; don't guess the syllabus from memory. Every reader files notes under these ids, so sources can be compared.
@@ -52,7 +58,7 @@ Skip content farms, listicles with no substance, pages behind a login, and anyth
 ```
 Only list urls you saw in real search results or on a page you opened. Search models invent plausible urls: in the first full test, 12 of 34 suggested urls were dead.
 
-Then fetch them: `python3 <skill>/scripts/scrape.py <workspace> web`. It names every page it didn't save and why: an HTTP error (usually a wrong url), a paywalled teaser, or a thin or JavaScript-only page. While fewer than 20 pages are saved, or any sub-topic you plan to teach has fewer than 2 pages, search again for replacements and re-run; it skips what's on disk.
+Then fetch them: `python <skill>/scripts/scrape.py <workspace> web`. It names every page it didn't save and why: an HTTP error (usually a wrong url), a paywalled teaser, or a thin or JavaScript-only page. While fewer than 20 pages are saved, or any sub-topic you plan to teach has fewer than 2 pages, search again for replacements and re-run; it skips what's on disk.
 
 Show the user a short line on what's being read (how many pages, the main kinds of source). Don't wait for approval.
 
@@ -65,7 +71,7 @@ When the user names someone, find where that person publishes (Substack, an own-
   {"name": "Ann Poe", "what": "one line", "site": {"kind": "rss", "feed": "https://annpoe.com/feed", "limit": 100}}
 ]}
 ```
-Run `python3 <skill>/scripts/scrape.py <workspace> <name>` in the background (Substack is slow on purpose; it rate-limits). If their archive can't be read (paywalled, JavaScript-only, too few posts), say so plainly and offer research mode instead. Lessons then say "she says" rather than "most sources agree", and the agreement map becomes a map of the person's own ideas and where they changed their mind.
+Run `python <skill>/scripts/scrape.py <workspace> <name>` in the background (Substack is slow on purpose; it rate-limits). If their archive can't be read (paywalled, JavaScript-only, too few posts), say so plainly and offer research mode instead. Lessons then say "she says" rather than "most sources agree", and the agreement map becomes a map of the person's own ideas and where they changed their mind.
 
 ## Step 3. Read
 Reader agents in parallel, each with `references/reader-brief.md`, a batch name (`a`, `b`, `c`...) and an explicit list of about 8 file paths (or one person's whole archive, split by date if it's large). They write `research/notes/<batch>.md`.
@@ -87,15 +93,15 @@ Check every claim in the plan against the agreement map before showing it: each 
 ## Step 6. One sample lesson first
 Write lesson 1 with `references/writer-brief.md` (use `references/lesson-example.md` as the shape), check it, render it, and send the audio and card. Then wait for the user's reaction before making the rest. Fixing the format on one lesson is cheap; fixing it on twelve is not. Their feedback becomes the shape every later lesson copies, so record it in the writer brief you pass on.
 
-Check: `python3 <skill>/scripts/check_lessons.py <workspace> <workspace>/class/01-<handle>`
-Render: `python3 <skill>/scripts/render_audio.py <lesson>/script.txt <lesson>/<handle>.mp3` (it writes the real running time onto the card's Listen line)
+Check: `python <skill>/scripts/check_lessons.py <workspace> <workspace>/class/01-<handle>`
+Render: `python <skill>/scripts/render_audio.py <lesson>/script.txt <lesson>/<handle>.mp3` (it writes the real running time onto the card's Listen line)
 
 ## Step 7. The rest
 - Writer agents in parallel, about 4 lessons each, each told to copy the approved lesson 1.
 - Run `check_lessons.py <workspace>` on everything. Fix failures and re-check; if one lesson fails three times, report it rather than looping.
 - Render every passing lesson in the background, about a minute each.
 - Create `class/playbook.md` with an effort ledger (lessons heard, things tried, rules kept) and an empty rules list.
-- `python3 <skill>/scripts/package_class.py <workspace>` builds audio zips under the upload cap and one combined cards file. Send those.
+- `python <skill>/scripts/package_class.py <workspace>` builds audio zips under the upload cap and one combined cards file. Send those.
 
 ## Reporting
 Short and concrete: what was made, how many lessons, total audio, what changed from the plan and why, what's still open. No streak talk, no pressure language.

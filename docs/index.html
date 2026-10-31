@@ -64,7 +64,7 @@ footer ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4em 1.2em}
       "description": "A free, open-source Claude Code skill that turns any topic into a short audio course: about 12 two-host audio lessons of 2 minutes each, with a card, one small practice and links to cited sources per lesson.",
       "url": "https://assafkip.github.io/claudemy/",
       "applicationCategory": "EducationalApplication",
-      "operatingSystem": "macOS, Linux",
+      "operatingSystem": "Windows",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -88,7 +88,7 @@ footer ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4em 1.2em}
           "name": "Is Claudemy free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices. The macOS voices cost nothing."
+            "text": "Yes. The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices. The Windows voices cost nothing."
           }
         },
         {
@@ -120,7 +120,7 @@ footer ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4em 1.2em}
           "name": "Can I use it without ElevenLabs?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. On a Mac it falls back to the built-in voices. The cards and playbook work with no audio at all."
+            "text": "Yes. On Windows it falls back to the built-in voices. The cards and playbook work with no audio at all."
           }
         },
         {
@@ -192,24 +192,24 @@ footer ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4em 1.2em}
 
 <h2>Install</h2>
 <p>As a Claude Code plugin:</p>
-<pre><code>/plugin marketplace add assafkip/claudemy
-/plugin install claudemy@claudemy</code></pre>
-<p>Or copy <code>skills/claudemy/</code> into <code>~/.claude/skills/</code>, or download <a href="https://github.com/assafkip/claudemy/releases/latest/download/claudemy.skill"><code>claudemy.skill</code></a> from the <a href="https://github.com/assafkip/claudemy/releases/latest">latest release</a>.</p>
+<pre><code>/plugin marketplace add alef-us/claudemy.win
+/plugin install claudemy@claudemy-win</code></pre>
+<p>Or copy <code>skills/claudemy/</code> into <code>%USERPROFILE%\.claude\skills\</code>.</p>
 <p>Then ask for any topic: <code>teach me &lt;topic&gt;</code>.</p>
 
 <h2>Needs</h2>
 <ul>
 <li><a href="https://claude.com/claude-code">Claude Code</a> with web search.</li>
-<li>Python 3 with <code>beautifulsoup4</code> (<code>pip install beautifulsoup4</code>), and <code>ffmpeg</code>.</li>
-<li>Audio: an ElevenLabs API key in <code>ELEVENLABS_API_KEY</code> for natural two-voice lessons. Without one, macOS's built-in voices are used (free, plainer).</li>
+<li>Python 3 that runs as <code>python</code> (<code>winget install Python.Python.3.13</code>) with <code>beautifulsoup4</code> (<code>python -m pip install beautifulsoup4</code>), and <code>ffmpeg</code> (<code>winget install Gyan.FFmpeg</code>).</li>
+<li>Audio: an ElevenLabs API key in <code>ELEVENLABS_API_KEY</code> for natural two-voice lessons. Without one, the built-in Windows voices are used (Microsoft Zira and David; free, plainer).</li>
 <li>Optional: <code>pandoc</code> for a Word copy of the cards.</li>
 </ul>
-<p>Voices can be changed with <code>CLAUDEMY_VOICE_A</code> / <code>CLAUDEMY_VOICE_B</code> (ElevenLabs voice ids) or <code>CLAUDEMY_SAY_A</code> / <code>CLAUDEMY_SAY_B</code> (macOS voices).</p>
+<p>Voices can be changed with <code>CLAUDEMY_VOICE_A</code> / <code>CLAUDEMY_VOICE_B</code> (ElevenLabs voice ids) or <code>CLAUDEMY_WIN_VOICE_A</code> / <code>CLAUDEMY_WIN_VOICE_B</code> (installed Windows voices).</p>
 
 <h2>FAQ</h2>
 <div class="faq">
 <h3>Is Claudemy free?</h3>
-<p>Yes. The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices. The macOS voices cost nothing.</p>
+<p>Yes. The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices. The Windows voices cost nothing.</p>
 <h3>How is it different from Udemy or Coursera?</h3>
 <p>Course sites sell a fixed course someone recorded once. Claudemy builds a course on the topic you name, at your level, from current sources, and shows you where those sources disagree. Lessons are 2 minutes and end in one thing to try, so the course is built to be finished.</p>
 <h3>What topics does it work for?</h3>
@@ -217,7 +217,7 @@ footer ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4em 1.2em}
 <h3>Does it copy other people's content?</h3>
 <p>No. It reads pages the way a researcher does, writes its own lessons, and links to the sources. Pages it reads are saved only in your local workspace for your own study.</p>
 <h3>Can I use it without ElevenLabs?</h3>
-<p>Yes. On a Mac it falls back to the built-in voices. The cards and playbook work with no audio at all.</p>
+<p>Yes. On Windows it falls back to the built-in voices. The cards and playbook work with no audio at all.</p>
 <h3>How long does a course take to make?</h3>
 <p>A 12-lesson course is a long-running Claude Code session: research, reading, writing and about 25 minutes of generated audio.</p>
 <h3>Can I learn from one specific expert?</h3>

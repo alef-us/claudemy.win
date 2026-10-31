@@ -1,10 +1,10 @@
 {
-  "name": "claudemy",
+  "name": "claudemy-win",
   "owner": {
-    "name": "Assaf Kipnis",
-    "url": "https://askconsulting.io"
+    "name": "alef-us",
+    "url": "https://github.com/alef-us"
   },
-  "description": "Claudemy: turn any topic into a researched course of 2-minute audio lessons with cited sources.",
+  "description": "Claudemy for Windows: turn any topic into a researched course of 2-minute audio lessons with cited sources.",
   "plugins": [
     {
       "name": "claudemy",

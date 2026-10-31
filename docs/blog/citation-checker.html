@@ -142,15 +142,15 @@ footer ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4em 1.2em}
 <p>You can also build a class from one person's work: <code>teach me negotiation from &lt;name&gt;&#x27;s writing</code>. It finds their Substack or blog and builds the lessons from that. If their archive cannot be read, it says so and offers research mode instead.</p>
 <h2>How to install Claudemy</h2>
 <p>In Claude Code:</p>
-<pre><code>/plugin marketplace add assafkip/claudemy
-/plugin install claudemy@claudemy</code></pre>
-<p>Or copy <code>skills/claudemy/</code> into <code>~/.claude/skills/</code>, or download <code>dist/claudemy.skill</code> from the repo.</p>
+<pre><code>/plugin marketplace add alef-us/claudemy.win
+/plugin install claudemy@claudemy-win</code></pre>
+<p>Or copy <code>skills/claudemy/</code> into <code>%USERPROFILE%\.claude\skills\</code>.</p>
 <p>Then ask for any topic: <code>teach me &lt;topic&gt;</code>.</p>
 <p>What you need:</p>
 <ul>
 <li>Claude Code with web search</li>
-<li>Python 3 with <code>beautifulsoup4</code> (<code>pip install beautifulsoup4</code>), and <code>ffmpeg</code></li>
-<li>For natural two-voice audio, an ElevenLabs API key in <code>ELEVENLABS_API_KEY</code>. Without one, macOS built-in voices are used. Free, plainer.</li>
+<li>Python 3 that runs as <code>python</code> (<code>winget install Python.Python.3.13</code>) with <code>beautifulsoup4</code> (<code>python -m pip install beautifulsoup4</code>), and <code>ffmpeg</code> (<code>winget install Gyan.FFmpeg</code>)</li>
+<li>For natural two-voice audio, an ElevenLabs API key in <code>ELEVENLABS_API_KEY</code>. Without one, the built-in Windows voices are used. Free, plainer.</li>
 <li>Optional: <code>pandoc</code> for a Word copy of the cards</li>
 </ul>
 <p>The skill is MIT licensed. You pay only for what you already use: your Claude plan, and ElevenLabs credits if you want the premium voices.</p>
